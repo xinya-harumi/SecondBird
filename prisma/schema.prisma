@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 用户表
+model User {
+  id              String   @id @default(cuid())
+  secondmeId      String   @unique
+  email           String?
+  name            String?
+  avatarUrl       String?
+  accessToken     String
+  refreshToken    String
+  tokenExpiresAt  DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // 关联
+  bird            Bird?
+  friendships     Friendship[] @relation("UserFriendships")
+  friendOf        Friendship[] @relation("FriendOf")
+}
+
+// 鸟类表
+model Bird {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  speciesId       String
+  species         BirdSpecies @relation(fields: [speciesId], references: [id])
+
+  name            String   // 鸟的昵称
+  personality     String   // AI 生成的性格描述
+  preferences     String   // 喜好（JSON 字符串）
+
+  currentLat      Float    // 当前纬度
+  currentLng      Float    // 当前经度
+  currentLocation String   // 当前位置名称
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // 关联
+  encounters      Encounter[] @relation("BirdEncounters")
+  encounteredBy   Encounter[] @relation("EncounteredBird")
+  relationships   BirdRelationship[] @relation("BirdRelationships")
+  relatedTo       BirdRelationship[] @relation("RelatedBird")
+}
+
+// 鸟类物种表
+model BirdSpecies {
+  id              String   @id @default(cuid())
+  name            String   @unique // 中文名
+  englishName     String   // 英文名
+  scientificName  String   // 学名
+  description     String   // 描述
+  habitat         String   // 栖息地类型
+  migrationRoute  String   // 迁徙路线（JSON 字符串）
+  imageUrl        String?  // 图片
+
+  birds           Bird[]
+}
+
+// 好友关系表
+model Friendship {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation("UserFriendships", fields: [userId], references: [id], onDelete: Cascade)
+  friendId        String
+  friend          User     @relation("FriendOf", fields: [friendId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+
+  @@unique([userId, friendId])
+}
+
+// 鸟类相遇记录表
+model Encounter {
+  id              String   @id @default(cuid())
+  birdId          String
+  bird            Bird     @relation("BirdEncounters", fields: [birdId], references: [id], onDelete: Cascade)
+  metBirdId       String
+  metBird         Bird     @relation("EncounteredBird", fields: [metBirdId], references: [id], onDelete: Cascade)
+
+  location        String   // 相遇地点
+  lat             Float
+  lng             Float
+  weather         String?  // 天气
+  scene           String?  // 场景描述
+  story           String?  // AI 生成的相遇故事
+
+  encounteredAt   DateTime @default(now())
+
+  @@unique([birdId, metBirdId, encounteredAt])
+}
+
+// 鸟类关系表（友谊/爱情）
+model BirdRelationship {
+  id              String   @id @default(cuid())
+  birdId          String
+  bird            Bird     @relation("BirdRelationships", fields: [birdId], references: [id], onDelete: Cascade)
+  relatedBirdId   String
+  relatedBird     Bird     @relation("RelatedBird", fields: [relatedBirdId], references: [id], onDelete: Cascade)
+
+  type            String   // "friendship" | "love"
+  strength        Int      @default(1) // 关系强度 1-100
+  startedAt       DateTime @default(now())
+
+  @@unique([birdId, relatedBirdId])
+}

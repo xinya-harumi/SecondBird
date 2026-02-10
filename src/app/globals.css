@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground: #1a1a1a;
+  --background: #fafafa;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: 'Noto Sans SC', system-ui, sans-serif;
+}
+
+/* 地图容器 */
+.map-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* 鸟类标记 */
+.bird-marker {
+  font-size: 2rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  transition: transform 0.2s ease;
+}
+
+.bird-marker:hover {
+  transform: scale(1.2);
+}
+
+/* 卡片样式 */
+.card {
+  @apply bg-white rounded-xl shadow-sm border border-gray-100 p-4;
+}
+
+.card-hover {
+  @apply transition-shadow hover:shadow-md;
+}
+
+/* 按钮样式 */
+.btn-primary {
+  @apply bg-primary-500 text-white px-4 py-2 rounded-lg font-medium transition-colors hover:bg-primary-600;
+}
+
+.btn-secondary {
+  @apply bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors hover:bg-gray-200;
+}
+
+/* 导航栏 */
+.nav-link {
+  @apply px-4 py-2 text-gray-600 hover:text-primary-600 transition-colors;
+}
+
+.nav-link-active {
+  @apply text-primary-600 font-medium;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}

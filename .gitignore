@@ -1,0 +1,43 @@
+# SecondBird 鸟友会
+
+# 依赖
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# 生产构建
+build/
+
+# 调试
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 本地环境变量
+.env*.local
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# 敏感配置
+.secondme/
+
+# 数据库
+prisma/dev.db
+prisma/dev.db-journal
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
