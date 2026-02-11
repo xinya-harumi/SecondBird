@@ -17,8 +17,6 @@ export default function Navbar({ user }: NavbarProps) {
     { href: '/', label: '世界地图' },
     { href: '/my-bird', label: '我的鸟' },
     { href: '/friends', label: '鸟友圈' },
-    { href: '/encyclopedia', label: '鸟类百科' },
-    { href: '/chat', label: 'AI 对话' },
   ]
 
   return (

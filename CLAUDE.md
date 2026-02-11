@@ -12,10 +12,13 @@
 ## 已启用模块
 - ✅ Auth - OAuth 2.0 登录
 - ✅ Profile - 用户个人资料
-- ✅ Chat - AI 对话
 - ✅ Note - 笔记功能
 - ✅ Soft Memory - 软记忆
 - ✅ Interest Tags - 兴趣标签
+
+## 暂时禁用模块
+- ❌ Chat - AI 对话（暂不上线）
+- ❌ Encyclopedia - 鸟类百科（暂不上线）
 
 ## SecondMe API 端点
 - 授权: `https://app.second.me/oauth/authorize`
