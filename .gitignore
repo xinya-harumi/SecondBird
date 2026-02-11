@@ -16,6 +16,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # 本地环境变量
+.env
 .env*.local
 
 # Vercel
@@ -27,6 +28,7 @@ next-env.d.ts
 
 # 敏感配置
 .secondme/
+.claude/
 
 # 数据库
 prisma/dev.db
