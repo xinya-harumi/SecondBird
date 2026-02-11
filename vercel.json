@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "regions": ["hkg1"],
+  "env": {
+    "NEXTAUTH_URL": "https://your-app.vercel.app"
+  }
+}

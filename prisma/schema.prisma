@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
 // 用户表
@@ -51,6 +52,7 @@ model Bird {
   encounteredBy   Encounter[] @relation("EncounteredBird")
   relationships   BirdRelationship[] @relation("BirdRelationships")
   relatedTo       BirdRelationship[] @relation("RelatedBird")
+  messages        Message[] @relation("MessageSpeaker")
 }
 
 // 鸟类物种表
@@ -96,6 +98,9 @@ model Encounter {
 
   encounteredAt   DateTime @default(now())
 
+  // 关联
+  conversation    Conversation?
+
   @@unique([birdId, metBirdId, encounteredAt])
 }
 
@@ -112,4 +117,34 @@ model BirdRelationship {
   startedAt       DateTime @default(now())
 
   @@unique([birdId, relatedBirdId])
+}
+
+// 对话记录表
+model Conversation {
+  id              String    @id @default(cuid())
+  encounterId     String    @unique
+  encounter       Encounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+
+  messages        Message[]
+
+  status          String    @default("pending") // pending | in_progress | completed | failed
+  attractionScore Float     // 吸引度分数
+
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+}
+
+// 对话消息表
+model Message {
+  id              String       @id @default(cuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  speakerBirdId   String
+  speakerBird     Bird         @relation("MessageSpeaker", fields: [speakerBirdId], references: [id], onDelete: Cascade)
+
+  content         String       // 消息内容
+  round           Int          // 对话轮次
+
+  createdAt       DateTime     @default(now())
 }

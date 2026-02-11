@@ -4,7 +4,8 @@
   "description": "SecondBird 鸟友会 - 基于真实地理位置的 AI 候鸟社交平台",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
+    "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",
     "db:push": "prisma db push",
