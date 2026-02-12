@@ -263,8 +263,9 @@ const ALL_BIRD_SPECIES: BirdSpeciesData[] = [
   },
 ]
 
-// 当前启用的鸟类（暂时只启用红嘴鸥）
-export const BIRD_SPECIES = ALL_BIRD_SPECIES.filter(bird => bird.id === 'red-billed-gull')
+// 当前启用的鸟类（5种）
+const ENABLED_BIRDS = ['red-billed-gull', 'swan-goose', 'mute-swan', 'barn-swallow', 'bar-headed-goose']
+export const BIRD_SPECIES = ALL_BIRD_SPECIES.filter(bird => ENABLED_BIRDS.includes(bird.id))
 
 // 根据月份获取鸟的当前位置
 export function getBirdCurrentLocation(species: BirdSpeciesData, month?: number): MigrationPoint {
