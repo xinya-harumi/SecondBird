@@ -150,21 +150,24 @@ function buildInitialPrompt(
   listener: BirdWithUser,
   context: ConversationContext
 ): string {
-  return `你是${speaker.name}，一只${speaker.species.name}。
+  return `你是${speaker.name}，一只${speaker.species.name}（${speaker.species.englishName}）。
 性格特点：${speaker.personality}
 当前位置：${context.location}
 正在进行的活动：${context.activity}
 ${context.weather ? `天气：${context.weather}` : ''}
 
+【物种背景知识】
+${speaker.species.description}
+
 你刚刚遇到了${listener.name}，一只${listener.species.name}。
 请用友好、自然的方式打招呼，开始一段对话。
 
 要求：
-- 用第一人称说话
-- 保持简短（1-2句话）
-- 体现你作为${speaker.species.name}的特点
-- 可以提到当前的环境或活动
-- 语气要自然友好`
+- 用第一人称说话，像一只真正的鸟在说话
+- 保持简短（2-3句话）
+- 在打招呼时，自然地提到当前环境的特点（如湖泊的生态、气候特征等）
+- 可以分享你作为${speaker.species.name}的独特习性或迁徙经历
+- 语气要自然友好，带有科普性质但不要太刻板`
 }
 
 /**
@@ -185,10 +188,25 @@ function buildResponsePrompt(
     })
     .join('\n')
 
-  return `你是${speaker.name}，一只${speaker.species.name}。
+  const round = history.length + 1
+
+  // 根据对话轮次引导不同的科普话题
+  let topicGuide = ''
+  if (round === 2) {
+    topicGuide = '可以介绍一下你的物种特性，比如食性、栖息习惯、叫声特点等'
+  } else if (round === 3) {
+    topicGuide = '可以聊聊你的迁徙路线、飞行能力，或者这个地方的自然环境特色'
+  } else if (round >= 4) {
+    topicGuide = '可以分享一些有趣的生存技能、与其他物种的关系，或者自然地道别'
+  }
+
+  return `你是${speaker.name}，一只${speaker.species.name}（${speaker.species.englishName}）。
 性格特点：${speaker.personality}
 当前位置：${context.location}
 正在进行的活动：${context.activity}
+
+【物种背景知识】
+${speaker.species.description}
 
 你正在和${other.name}（一只${other.species.name}）聊天。
 
@@ -200,11 +218,12 @@ ${other.name}刚才说：「${lastMessage}」
 请自然地回应这段对话。
 
 要求：
-- 用第一人称说话
-- 保持简短（1-2句话）
-- 体现你作为${speaker.species.name}的性格
-- 可以分享自己的经历或感受
-- 如果对话已经进行了几轮，可以自然地结束（说再见等）
+- 用第一人称说话，像一只真正的鸟在说话
+- 保持简短（2-3句话）
+- 体现你作为${speaker.species.name}的性格和特点
+- ${topicGuide}
+- 自然地融入科普知识（地理环境、生态习性、迁徙知识等），但不要太生硬
+- 如果对话已经进行了几轮，可以自然地结束（说再见、祝对方迁徙顺利等）
 - 语气要自然友好`
 }
 
