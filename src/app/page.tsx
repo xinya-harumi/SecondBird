@@ -76,7 +76,7 @@ export default function Home() {
       <main className="flex-1 flex">
         {/* 左侧信息面板 */}
         <aside className="w-80 bg-white border-r border-gray-200 p-4 overflow-y-auto">
-          <BirdInfoCard bird={user.bird} userName={user.name} />
+          <BirdInfoCard bird={user.bird} userName={user.name} onBirdChanged={fetchUser} />
         </aside>
 
         {/* 右侧地图 */}

@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { BIRD_SPECIES, getBirdCurrentLocation } from '@/data/birds'
 
 interface BirdInfoCardProps {
@@ -17,11 +18,35 @@ interface BirdInfoCardProps {
     }
   }
   userName: string
+  onBirdChanged?: () => void
 }
 
-export default function BirdInfoCard({ bird, userName }: BirdInfoCardProps) {
+export default function BirdInfoCard({ bird, userName, onBirdChanged }: BirdInfoCardProps) {
+  const [showSelector, setShowSelector] = useState(false)
+  const [changing, setChanging] = useState(false)
+
   const speciesData = BIRD_SPECIES.find(s => s.name === bird.species.name)
   const currentLocation = speciesData ? getBirdCurrentLocation(speciesData) : null
+
+  const handleChangeBird = async (speciesId: string) => {
+    setChanging(true)
+    try {
+      const res = await fetch('/api/bird/change', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ speciesId }),
+      })
+
+      if (res.ok) {
+        setShowSelector(false)
+        onBirdChanged?.()
+      }
+    } catch (error) {
+      console.error('Failed to change bird:', error)
+    } finally {
+      setChanging(false)
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -30,7 +55,58 @@ export default function BirdInfoCard({ bird, userName }: BirdInfoCardProps) {
         <div className="text-6xl mb-2">{speciesData?.imageEmoji || '🐦'}</div>
         <h2 className="text-xl font-bold text-gray-800">{bird.name}</h2>
         <p className="text-sm text-gray-500">{bird.species.name} · {bird.species.englishName}</p>
+        <button
+          onClick={() => setShowSelector(true)}
+          className="mt-2 text-xs text-primary-600 hover:text-primary-700"
+        >
+          切换鸟类
+        </button>
       </div>
+
+      {/* 鸟类选择弹窗 */}
+      {showSelector && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">选择你的候鸟</h3>
+            <div className="space-y-3">
+              {BIRD_SPECIES.map((species) => (
+                <button
+                  key={species.id}
+                  onClick={() => handleChangeBird(species.id)}
+                  disabled={changing || species.name === bird.species.name}
+                  className={`w-full p-3 rounded-lg border text-left transition-colors ${
+                    species.name === bird.species.name
+                      ? 'border-primary-500 bg-primary-50'
+                      : 'border-gray-200 hover:border-primary-300 hover:bg-gray-50'
+                  } ${changing ? 'opacity-50' : ''}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl">{species.imageEmoji}</span>
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-800">
+                        {species.name}
+                        {species.name === bird.species.name && (
+                          <span className="ml-2 text-xs text-primary-600">当前</span>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500">{species.englishName}</div>
+                      <div className="text-xs text-gray-600 mt-1 line-clamp-2">
+                        {species.description}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setShowSelector(false)}
+              className="mt-4 w-full py-2 text-gray-600 hover:text-gray-800"
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 当前状态 */}
       <div className="card bg-primary-50 border-primary-100">
