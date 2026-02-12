@@ -160,7 +160,7 @@ export async function getUserSoftMemory(accessToken: string) {
   return callSecondMeApi('/api/secondme/user/softmemory', accessToken)
 }
 
-// 发送聊天消息（读取完整流式响应）
+// 发送聊天消息（读取完整流式响应，带超时）
 export async function sendChatMessage(
   accessToken: string,
   message: string,
@@ -168,60 +168,74 @@ export async function sendChatMessage(
 ): Promise<string> {
   const url = `${SECONDME_CONFIG.apiUrl}/api/secondme/chat/stream`
   console.log('Calling Chat API:', url)
-  console.log('Message:', message.substring(0, 100) + '...')
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      message,
-      context,
-    }),
-  })
+  // 添加 30 秒超时
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 30000)
 
-  console.log('Chat API response status:', response.status)
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message,
+        context,
+      }),
+      signal: controller.signal,
+    })
 
-  if (!response.ok) {
-    const errorText = await response.text()
-    console.error('Chat API error:', errorText)
-    throw new Error(`Chat API failed: ${response.status} - ${errorText}`)
-  }
+    clearTimeout(timeout)
+    console.log('Chat API response status:', response.status)
 
-  // 读取 SSE 流并拼接内容
-  const reader = response.body?.getReader()
-  const decoder = new TextDecoder()
-  let fullContent = ''
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Chat API error:', errorText)
+      throw new Error(`Chat API failed: ${response.status}`)
+    }
 
-  if (reader) {
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
+    // 读取 SSE 流并拼接内容
+    const reader = response.body?.getReader()
+    const decoder = new TextDecoder()
+    let fullContent = ''
 
-      const chunk = decoder.decode(value, { stream: true })
-      const lines = chunk.split('\n')
+    if (reader) {
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
 
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6)
-          if (data === '[DONE]') continue
+        const chunk = decoder.decode(value, { stream: true })
+        const lines = chunk.split('\n')
 
-          try {
-            const parsed = JSON.parse(data)
-            const content = parsed.choices?.[0]?.delta?.content || ''
-            fullContent += content
-          } catch {
-            // 忽略解析错误
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6)
+            if (data === '[DONE]') continue
+
+            try {
+              const parsed = JSON.parse(data)
+              const content = parsed.choices?.[0]?.delta?.content || ''
+              fullContent += content
+            } catch {
+              // 忽略解析错误
+            }
           }
         }
       }
     }
-  }
 
-  console.log('Chat API response content length:', fullContent.length)
-  return fullContent || '你好！'
+    console.log('Chat API response length:', fullContent.length)
+    return fullContent || '你好！很高兴认识你！'
+  } catch (error: any) {
+    clearTimeout(timeout)
+    if (error.name === 'AbortError') {
+      console.error('Chat API timeout')
+      return '你好！很高兴在这里遇见你！'
+    }
+    throw error
+  }
 }
 
 // 流式聊天（用于实时展示）
