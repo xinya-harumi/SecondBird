@@ -66,6 +66,37 @@ export async function POST(request: NextRequest) {
     const currentLocation = getBirdCurrentLocation(speciesData)
 
     if (user.bird) {
+      // 清空相遇记录、对话、好友关系
+      // 删除相遇记录（会级联删除对话和消息）
+      await prisma.encounter.deleteMany({
+        where: {
+          OR: [
+            { birdId: user.bird.id },
+            { metBirdId: user.bird.id },
+          ],
+        },
+      })
+
+      // 删除鸟类关系
+      await prisma.birdRelationship.deleteMany({
+        where: {
+          OR: [
+            { birdId: user.bird.id },
+            { relatedBirdId: user.bird.id },
+          ],
+        },
+      })
+
+      // 删除好友关系
+      await prisma.friendship.deleteMany({
+        where: {
+          OR: [
+            { userId: user.id },
+            { friendId: user.id },
+          ],
+        },
+      })
+
       // 更新现有鸟类
       await prisma.bird.update({
         where: { id: user.bird.id },
