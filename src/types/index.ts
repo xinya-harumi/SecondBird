@@ -101,8 +101,8 @@ export interface BirdWithUser extends Bird {
   }
   user: {
     id: string
-    name: string
-    avatarUrl?: string
+    name?: string | null
+    avatarUrl?: string | null
     accessToken: string
     secondmeId: string
   }
