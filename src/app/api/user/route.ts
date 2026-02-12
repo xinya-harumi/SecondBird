@@ -23,6 +23,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 })
   }
 
+  // 如果用户没有鸟类记录，清除 cookie 让用户重新登录
+  if (!user.bird) {
+    const response = NextResponse.json({ error: 'No bird found, please re-login' }, { status: 401 })
+    response.cookies.delete('userId')
+    return response
+  }
+
   return NextResponse.json({
     id: user.id,
     name: user.name,
