@@ -65,8 +65,15 @@ export default function BirdInfoCard({ bird, userName, onBirdChanged }: BirdInfo
 
       {/* 鸟类选择弹窗 */}
       {showSelector && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto relative">
+            {/* 关闭按钮 */}
+            <button
+              onClick={() => setShowSelector(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
+            >
+              ✕
+            </button>
             <h3 className="text-lg font-bold text-gray-800 mb-4">选择你的候鸟</h3>
             <div className="space-y-3">
               {BIRD_SPECIES.map((species) => (
@@ -98,12 +105,6 @@ export default function BirdInfoCard({ bird, userName, onBirdChanged }: BirdInfo
                 </button>
               ))}
             </div>
-            <button
-              onClick={() => setShowSelector(false)}
-              className="mt-4 w-full py-2 text-gray-600 hover:text-gray-800"
-            >
-              取消
-            </button>
           </div>
         </div>
       )}
