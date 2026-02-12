@@ -64,25 +64,34 @@ export default function FriendsPage() {
   const [loading, setLoading] = useState(true)
   const [checking, setChecking] = useState(false)
   const [expandedConversation, setExpandedConversation] = useState<string | null>(null)
+  const [isPolling, setIsPolling] = useState(false)
 
   useEffect(() => {
     fetchData()
   }, [])
 
-  // 自动刷新：当有进行中的对话时，每 3 秒刷新一次
+  // 自动刷新：当有进行中的对话或正在轮询时，每 3 秒刷新一次
   useEffect(() => {
     const hasInProgressConversation = encounters.some(
       e => e.conversation && (e.conversation.status === 'pending' || e.conversation.status === 'in_progress')
     )
 
-    if (hasInProgressConversation) {
+    if (hasInProgressConversation || isPolling) {
       const timer = setInterval(() => {
         fetchEncountersOnly()
       }, 3000)
 
+      // 如果对话都完成了，停止轮询
+      if (!hasInProgressConversation && isPolling) {
+        // 再等一轮确保状态同步
+        setTimeout(() => {
+          setIsPolling(false)
+        }, 5000)
+      }
+
       return () => clearInterval(timer)
     }
-  }, [encounters])
+  }, [encounters, isPolling])
 
   const fetchData = async () => {
     try {
@@ -126,6 +135,7 @@ export default function FriendsPage() {
 
   const checkEncounters = async () => {
     setChecking(true)
+    setIsPolling(true)  // 开始轮询
     try {
       const res = await fetch('/api/encounters/check', { method: 'POST' })
       if (res.ok) {
@@ -135,6 +145,7 @@ export default function FriendsPage() {
       }
     } catch (error) {
       console.error('Failed to check encounters:', error)
+      setIsPolling(false)  // 出错时停止轮询
     } finally {
       setChecking(false)
     }
