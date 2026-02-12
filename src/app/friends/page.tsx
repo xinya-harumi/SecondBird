@@ -118,6 +118,27 @@ export default function FriendsPage() {
     setExpandedConversation(prev => prev === encounterId ? null : encounterId)
   }
 
+  const removeFriendship = async (otherBirdId: string, otherBirdName: string) => {
+    if (!confirm(`确定要解除与 ${otherBirdName} 的好友关系吗？`)) {
+      return
+    }
+
+    try {
+      const res = await fetch('/api/friendships', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ otherBirdId }),
+      })
+
+      if (res.ok) {
+        // 刷新数据
+        await fetchData()
+      }
+    } catch (error) {
+      console.error('Failed to remove friendship:', error)
+    }
+  }
+
   if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -224,6 +245,16 @@ export default function FriendsPage() {
                                 {encounter.relationship.strength}
                               </span>
                             </div>
+                          )}
+                          {/* 解除好友按钮 */}
+                          {encounter.relationship && (
+                            <button
+                              onClick={() => removeFriendship(otherBird.id, otherBird.name)}
+                              className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+                              title="解除好友关系"
+                            >
+                              解除好友
+                            </button>
                           )}
                         </div>
 
