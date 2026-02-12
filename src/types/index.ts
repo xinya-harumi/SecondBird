@@ -61,3 +61,49 @@ export interface SecondMeShade {
   name: string
   description?: string
 }
+
+export interface Conversation {
+  id: string
+  encounterId: string
+  status: 'pending' | 'in_progress' | 'completed' | 'failed'
+  attractionScore: number
+  createdAt: Date
+  completedAt?: Date
+  messages?: Message[]
+}
+
+export interface Message {
+  id: string
+  conversationId: string
+  speakerBirdId: string
+  content: string
+  round: number
+  createdAt: Date
+  speakerBird?: Bird
+}
+
+export interface AttractionResult {
+  score: number
+  factors: {
+    shadesMatch: number
+    personalityMatch: number
+    speciesAffinity: number
+    locationBonus: number
+  }
+}
+
+export interface BirdWithUser extends Bird {
+  species: {
+    id: string
+    name: string
+    englishName: string
+    description: string
+  }
+  user: {
+    id: string
+    name: string
+    avatarUrl?: string
+    accessToken: string
+    secondmeId: string
+  }
+}

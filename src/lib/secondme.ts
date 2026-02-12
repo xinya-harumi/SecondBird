@@ -108,3 +108,71 @@ export async function getUserShades(accessToken: string) {
 export async function getUserSoftMemory(accessToken: string) {
   return callSecondMeApi('/api/secondme/user/softmemory', accessToken)
 }
+
+// 发送聊天消息（非流式，用于后台任务）
+export async function sendChatMessage(
+  accessToken: string,
+  message: string,
+  context?: string
+): Promise<string> {
+  const result = await callSecondMeApi('/api/secondme/chat', accessToken, {
+    method: 'POST',
+    body: JSON.stringify({
+      message,
+      context,
+      stream: false,
+    }),
+  })
+
+  if (result.code !== 0) {
+    throw new Error(result.message || 'Chat API failed')
+  }
+
+  return result.data?.response || result.data?.message || ''
+}
+
+// 流式聊天（用于实时展示）
+export async function streamChat(
+  accessToken: string,
+  message: string,
+  context?: string,
+  onChunk?: (chunk: string) => void
+): Promise<string> {
+  const url = `${SECONDME_CONFIG.apiUrl}/api/secondme/chat`
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      'Accept': 'text/event-stream',
+    },
+    body: JSON.stringify({
+      message,
+      context,
+      stream: true,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Chat API failed: ${response.status}`)
+  }
+
+  // 处理 SSE 流
+  const reader = response.body?.getReader()
+  const decoder = new TextDecoder()
+  let fullResponse = ''
+
+  if (reader) {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      const chunk = decoder.decode(value, { stream: true })
+      fullResponse += chunk
+      onChunk?.(chunk)
+    }
+  }
+
+  return fullResponse
+}

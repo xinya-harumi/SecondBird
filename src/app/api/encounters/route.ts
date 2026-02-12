@@ -41,10 +41,58 @@ export async function GET(request: NextRequest) {
           },
         },
       },
+      conversation: {
+        include: {
+          messages: {
+            include: {
+              speakerBird: {
+                include: { species: true },
+              },
+            },
+            orderBy: { round: 'asc' },
+          },
+        },
+      },
     },
     orderBy: { encounteredAt: 'desc' },
     take: 50,
   })
 
-  return NextResponse.json({ encounters })
+  // 获取用户的关系列表
+  const relationships = await prisma.birdRelationship.findMany({
+    where: {
+      birdId: userBird.id,
+    },
+    include: {
+      relatedBird: {
+        include: {
+          species: true,
+          user: {
+            select: { name: true, avatarUrl: true },
+          },
+        },
+      },
+    },
+  })
+
+  // 构建关系映射
+  const relationshipMap = new Map(
+    relationships.map(r => [r.relatedBirdId, { type: r.type, strength: r.strength }])
+  )
+
+  // 为每个相遇添加关系信息
+  const encountersWithRelationship = encounters.map(encounter => {
+    const otherBirdId = encounter.birdId === userBird.id ? encounter.metBirdId : encounter.birdId
+    const relationship = relationshipMap.get(otherBirdId)
+
+    return {
+      ...encounter,
+      relationship: relationship || null,
+    }
+  })
+
+  return NextResponse.json({
+    encounters: encountersWithRelationship,
+    myBirdId: userBird.id,
+  })
 }
