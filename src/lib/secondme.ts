@@ -160,26 +160,61 @@ export async function getUserSoftMemory(accessToken: string) {
   return callSecondMeApi('/api/secondme/user/softmemory', accessToken)
 }
 
-// 发送聊天消息（非流式，用于后台任务）
+// 发送聊天消息（读取完整流式响应）
 export async function sendChatMessage(
   accessToken: string,
   message: string,
   context?: string
 ): Promise<string> {
-  const result = await callSecondMeApi('/api/secondme/chat', accessToken, {
+  const url = `${SECONDME_CONFIG.apiUrl}/api/secondme/chat/stream`
+
+  const response = await fetch(url, {
     method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify({
       message,
       context,
-      stream: false,
     }),
   })
 
-  if (result.code !== 0) {
-    throw new Error(result.message || 'Chat API failed')
+  if (!response.ok) {
+    throw new Error(`Chat API failed: ${response.status}`)
   }
 
-  return result.data?.response || result.data?.message || ''
+  // 读取 SSE 流并拼接内容
+  const reader = response.body?.getReader()
+  const decoder = new TextDecoder()
+  let fullContent = ''
+
+  if (reader) {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      const chunk = decoder.decode(value, { stream: true })
+      const lines = chunk.split('\n')
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6)
+          if (data === '[DONE]') continue
+
+          try {
+            const parsed = JSON.parse(data)
+            const content = parsed.choices?.[0]?.delta?.content || ''
+            fullContent += content
+          } catch {
+            // 忽略解析错误
+          }
+        }
+      }
+    }
+  }
+
+  return fullContent || '你好！'
 }
 
 // 流式聊天（用于实时展示）
