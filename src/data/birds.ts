@@ -19,7 +19,8 @@ export interface MigrationPoint {
   activity: string // 在该地点的活动
 }
 
-export const BIRD_SPECIES: BirdSpeciesData[] = [
+// 所有鸟类数据（暂时只启用红嘴鸥，其他后续恢复）
+const ALL_BIRD_SPECIES: BirdSpeciesData[] = [
   {
     id: 'red-billed-gull',
     name: '红嘴鸥',
@@ -261,6 +262,9 @@ export const BIRD_SPECIES: BirdSpeciesData[] = [
     ],
   },
 ]
+
+// 当前启用的鸟类（暂时只启用红嘴鸥）
+export const BIRD_SPECIES = ALL_BIRD_SPECIES.filter(bird => bird.id === 'red-billed-gull')
 
 // 根据月份获取鸟的当前位置
 export function getBirdCurrentLocation(species: BirdSpeciesData, month?: number): MigrationPoint {
