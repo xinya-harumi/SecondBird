@@ -270,9 +270,12 @@ export function getBirdCurrentLocation(species: BirdSpeciesData, month?: number)
 
 // 根据用户兴趣标签匹配鸟类
 export function matchBirdByPersonality(userTraits: string[]): BirdSpeciesData {
+  // 过滤掉 undefined/null 值
+  const validTraits = userTraits.filter(t => t != null && typeof t === 'string')
+
   const scores = BIRD_SPECIES.map(bird => {
     const matchCount = bird.personality.filter(p =>
-      userTraits.some(t => t.includes(p) || p.includes(t))
+      validTraits.some(t => t.includes(p) || p.includes(t))
     ).length
     return { bird, score: matchCount }
   })
