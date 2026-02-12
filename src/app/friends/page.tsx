@@ -272,7 +272,7 @@ export default function FriendsPage() {
                               </span>
                             </div>
                           )}
-                          {/* 解除好友按钮 */}
+                          {/* 解除好友按钮 - 暂时隐藏，后续完善后上线
                           {encounter.relationship && (
                             <button
                               onClick={() => removeFriendship(otherBird.id, otherBird.name)}
@@ -282,6 +282,7 @@ export default function FriendsPage() {
                               解除好友
                             </button>
                           )}
+                          */}
                         </div>
 
                         {/* 对话按钮 */}

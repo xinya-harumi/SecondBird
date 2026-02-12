@@ -17,7 +17,7 @@ interface MessageRecord {
 }
 
 const MIN_ROUNDS = 3
-const MAX_ROUNDS = 3  // 固定 3 轮，加快对话速度
+const MAX_ROUNDS = 5  // 3-5 轮对话，保证科普内容充足
 
 /**
  * 运行自动对话
@@ -173,6 +173,10 @@ function buildResponsePrompt(
   let topic = ''
   if (round === 2) {
     topic = '聊聊你的食性或栖息习惯'
+  } else if (round === 3) {
+    topic = '分享你的迁徙路线或飞行能力'
+  } else if (round === 4) {
+    topic = '介绍这个地方的自然环境特色'
   } else {
     topic = '可以道别，祝对方迁徙顺利'
   }
