@@ -81,7 +81,7 @@ export default function Home() {
 
         {/* 右侧地图 */}
         <div className="flex-1 relative">
-          <WorldMap userId={user.id} key={user.bird.id} />
+          <WorldMap userId={user.id} key={`${user.bird.id}-${user.bird.species.name}`} />
         </div>
       </main>
     </div>
