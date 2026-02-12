@@ -15,7 +15,7 @@ export default function Navbar({ user }: NavbarProps) {
 
   const navItems = [
     { href: '/', label: '世界地图' },
-    { href: '/my-bird', label: '我的鸟' },
+    // { href: '/my-bird', label: '我的鸟' }, // 暂时隐藏
     { href: '/friends', label: '鸟友圈' },
   ]
 
