@@ -8,6 +8,57 @@ export const SECONDME_CONFIG = {
   scopes: ['user.info', 'user.info.shades', 'user.info.softmemory', 'note.add', 'chat'],
 }
 
+import { prisma } from '@/lib/prisma'
+
+/**
+ * 获取有效的 AccessToken，如果过期则自动刷新
+ */
+export async function getValidAccessToken(userId: string): Promise<string> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  })
+
+  if (!user) {
+    throw new Error('User not found')
+  }
+
+  // 检查 token 是否即将过期（提前 5 分钟刷新）
+  const now = new Date()
+  const expiresAt = new Date(user.tokenExpiresAt)
+  const bufferTime = 5 * 60 * 1000 // 5 分钟
+
+  if (expiresAt.getTime() - now.getTime() > bufferTime) {
+    // Token 还有效
+    return user.accessToken
+  }
+
+  // Token 即将过期，刷新
+  console.log(`Refreshing token for user ${userId}`)
+  try {
+    const tokenData = await refreshAccessToken(user.refreshToken)
+
+    const newAccessToken = tokenData.access_token || tokenData.accessToken
+    const newRefreshToken = tokenData.refresh_token || tokenData.refreshToken || user.refreshToken
+    const expiresIn = tokenData.expires_in || tokenData.expiresIn || 7200
+
+    // 更新数据库
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        tokenExpiresAt: new Date(Date.now() + expiresIn * 1000),
+      },
+    })
+
+    return newAccessToken
+  } catch (error) {
+    console.error('Failed to refresh token:', error)
+    // 刷新失败，返回旧 token（可能仍然有效）
+    return user.accessToken
+  }
+}
+
 // 生成授权 URL
 export function getAuthorizationUrl(): string {
   const params = new URLSearchParams({

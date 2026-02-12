@@ -1,6 +1,6 @@
 // 对话引擎模块
 import { prisma } from '@/lib/prisma'
-import { sendChatMessage } from '@/lib/secondme'
+import { sendChatMessage, getValidAccessToken } from '@/lib/secondme'
 import type { BirdWithUser } from '@/types'
 
 interface ConversationContext {
@@ -41,9 +41,10 @@ export async function runConversation(
     // 2. 生成初始话题
     const initialPrompt = buildInitialPrompt(bird1, bird2, context)
 
-    // 3. Bird1 发起对话
+    // 3. Bird1 发起对话（自动刷新 token）
+    const token1 = await getValidAccessToken(bird1.user.id)
     const response1 = await sendChatMessage(
-      bird1.user.accessToken,
+      token1,
       initialPrompt
     )
 
@@ -59,11 +60,12 @@ export async function runConversation(
     while (currentRound < MAX_ROUNDS) {
       currentRound++
 
-      // Bird2 回应
+      // Bird2 回应（自动刷新 token）
       const lastMessage = messages[messages.length - 1]
       const response2Prompt = buildResponsePrompt(bird2, bird1, lastMessage.content, context, messages)
+      const token2 = await getValidAccessToken(bird2.user.id)
       const response2 = await sendChatMessage(
-        bird2.user.accessToken,
+        token2,
         response2Prompt
       )
 
@@ -84,8 +86,9 @@ export async function runConversation(
       if (currentRound < MAX_ROUNDS) {
         currentRound++
         const response1Prompt = buildResponsePrompt(bird1, bird2, response2, context, messages)
+        const token1Next = await getValidAccessToken(bird1.user.id)
         const response1Next = await sendChatMessage(
-          bird1.user.accessToken,
+          token1Next,
           response1Prompt
         )
 

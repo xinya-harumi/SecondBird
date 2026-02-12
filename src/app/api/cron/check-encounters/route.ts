@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { BIRD_SPECIES, getBirdCurrentLocation, canBirdsEncounter } from '@/data/birds'
-import { calculateAttraction, shouldTriggerConversation } from '@/lib/attraction'
+import { calculateAttraction, calculateDistance, shouldTriggerConversation } from '@/lib/attraction'
 import { runConversation } from '@/lib/conversation'
 
 // 定时任务：检查所有鸟的相遇
@@ -86,8 +86,30 @@ export async function GET(request: NextRequest) {
 
         if (recentEncounter) continue
 
+        // 计算距离
+        const distance = calculateDistance(
+          bird1.currentLat,
+          bird1.currentLng,
+          bird2.currentLat,
+          bird2.currentLng
+        )
+
+        // 从 preferences 中提取 shades，从 personality 中提取性格
+        const bird1Shades = extractShades(bird1.preferences)
+        const bird2Shades = extractShades(bird2.preferences)
+        const bird1Personality = bird1.personality.split('、')
+        const bird2Personality = bird2.personality.split('、')
+
         // 计算吸引度
-        const attraction = calculateAttraction(bird1, bird2)
+        const attraction = calculateAttraction(
+          bird1Shades,
+          bird2Shades,
+          bird1Personality,
+          bird2Personality,
+          bird1.species.name,
+          bird2.species.name,
+          distance
+        )
 
         // 检查是否应该触发对话
         if (!shouldTriggerConversation(attraction.score)) continue
@@ -189,4 +211,14 @@ function getRandomScene(location: string): string {
   }
   const scenes = ['宁静的角落', '温暖的阳光下', '微风轻拂中']
   return scenes[Math.floor(Math.random() * scenes.length)]
+}
+
+// 从 preferences JSON 中提取 shades/traits
+function extractShades(preferences: string): string[] {
+  try {
+    const parsed = JSON.parse(preferences)
+    return parsed.traits || parsed.shades || []
+  } catch {
+    return []
+  }
 }
