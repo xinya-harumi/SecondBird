@@ -11,7 +11,7 @@ export default function LoginPage() {
       </div>
 
       {/* 特性介绍 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mb-12">
         <div className="card text-center">
           <div className="text-3xl mb-3">🗺️</div>
           <h3 className="font-medium text-gray-800 mb-2">全球迁徙</h3>
@@ -26,6 +26,7 @@ export default function LoginPage() {
             在湖泊、森林中与其他鸟相遇，建立跨物种的友谊
           </p>
         </div>
+        {/* AI 对话功能暂时隐藏
         <div className="card text-center">
           <div className="text-3xl mb-3">💬</div>
           <h3 className="font-medium text-gray-800 mb-2">AI 对话</h3>
@@ -33,6 +34,7 @@ export default function LoginPage() {
             与你的鸟聊天，了解它的想法和迁徙故事
           </p>
         </div>
+        */}
       </div>
 
       {/* 登录按钮 */}
