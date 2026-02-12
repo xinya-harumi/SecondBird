@@ -1,0 +1,29 @@
+name: 鸟类相遇检查
+
+on:
+  schedule:
+    # 每 6 小时运行一次 (UTC 时间 0, 6, 12, 18 点)
+    - cron: '0 */6 * * *'
+  # 支持手动触发
+  workflow_dispatch:
+
+jobs:
+  check-encounters:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检查鸟类相遇
+        run: |
+          response=$(curl -s -w "\n%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_API_KEY }}" \
+            https://secondbird.vercel.app/api/cron/check-encounters)
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Response: $body"
+          echo "HTTP Status: $http_code"
+
+          if [ "$http_code" != "200" ]; then
+            echo "Request failed with status $http_code"
+            exit 1
+          fi
