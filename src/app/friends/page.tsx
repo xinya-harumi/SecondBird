@@ -69,6 +69,21 @@ export default function FriendsPage() {
     fetchData()
   }, [])
 
+  // 自动刷新：当有进行中的对话时，每 3 秒刷新一次
+  useEffect(() => {
+    const hasInProgressConversation = encounters.some(
+      e => e.conversation && (e.conversation.status === 'pending' || e.conversation.status === 'in_progress')
+    )
+
+    if (hasInProgressConversation) {
+      const timer = setInterval(() => {
+        fetchEncountersOnly()
+      }, 3000)
+
+      return () => clearInterval(timer)
+    }
+  }, [encounters])
+
   const fetchData = async () => {
     try {
       const [userRes, encountersRes] = await Promise.all([
@@ -96,16 +111,27 @@ export default function FriendsPage() {
     }
   }
 
+  // 只刷新 encounters 数据（不刷新 user）
+  const fetchEncountersOnly = async () => {
+    try {
+      const res = await fetch('/api/encounters')
+      if (res.ok) {
+        const data = await res.json()
+        setEncounters(data.encounters || [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch encounters:', error)
+    }
+  }
+
   const checkEncounters = async () => {
     setChecking(true)
     try {
       const res = await fetch('/api/encounters/check', { method: 'POST' })
       if (res.ok) {
         const data = await res.json()
-        if (data.encounters && data.encounters.length > 0) {
-          // 刷新数据
-          await fetchData()
-        }
+        // 总是刷新数据，即使没有新相遇
+        await fetchData()
       }
     } catch (error) {
       console.error('Failed to check encounters:', error)
