@@ -222,5 +222,5 @@ export function calculateDistance(
  * @returns 是否可以触发对话
  */
 export function shouldTriggerConversation(score: number): boolean {
-  return score >= 60
+  return score >= 50
 }
