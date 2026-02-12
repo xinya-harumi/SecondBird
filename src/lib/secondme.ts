@@ -167,6 +167,8 @@ export async function sendChatMessage(
   context?: string
 ): Promise<string> {
   const url = `${SECONDME_CONFIG.apiUrl}/api/secondme/chat/stream`
+  console.log('Calling Chat API:', url)
+  console.log('Message:', message.substring(0, 100) + '...')
 
   const response = await fetch(url, {
     method: 'POST',
@@ -180,8 +182,12 @@ export async function sendChatMessage(
     }),
   })
 
+  console.log('Chat API response status:', response.status)
+
   if (!response.ok) {
-    throw new Error(`Chat API failed: ${response.status}`)
+    const errorText = await response.text()
+    console.error('Chat API error:', errorText)
+    throw new Error(`Chat API failed: ${response.status} - ${errorText}`)
   }
 
   // 读取 SSE 流并拼接内容
@@ -214,6 +220,7 @@ export async function sendChatMessage(
     }
   }
 
+  console.log('Chat API response content length:', fullContent.length)
   return fullContent || '你好！'
 }
 
